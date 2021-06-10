@@ -1,19 +1,17 @@
 from datetime import datetime
 from airflow import DAG
-from airflow.operators.latest_only_operator import LatestOnlyOperator
 from airflow.providers.amazon.aws.operators.ecs import ECSOperator
 from airflow.models import Variable
 
 
-start_date = datetime(2021, 5, 11)  # 11 May 2021
+start_date = datetime(2021, 6, 1)  # 1 June 2021
 
 NEWS_CRAWLER_DAG = DAG(dag_id='news_crawler',
                        schedule_interval='@daily',  # every day at midnight
                        start_date=start_date,
                        max_active_runs=1,
                        concurrency=1)
-LAST_RUN = LatestOnlyOperator(
-    task_id='latest_only', dag=NEWS_CRAWLER_DAG)
+
 
 SCRAPER = ECSOperator(task_id='news_scraper',
                       dag=NEWS_CRAWLER_DAG,
@@ -25,6 +23,7 @@ SCRAPER = ECSOperator(task_id='news_scraper',
                       overrides={"containerOverrides": [
                           {
                               "name": "news-crawler-container",
+                              "command": ['{{ds}}']
                           },
                       ],
                       },
@@ -39,4 +38,4 @@ SCRAPER = ECSOperator(task_id='news_scraper',
                       awslogs_group="/ecs/ecs-task-definition")
 
 # pylint: disable=pointless-statement
-LAST_RUN >> SCRAPER
+SCRAPER
