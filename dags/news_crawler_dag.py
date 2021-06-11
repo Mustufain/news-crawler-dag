@@ -10,7 +10,7 @@ NEWS_CRAWLER_DAG = DAG(dag_id='news_crawler',
                        schedule_interval='@daily',  # every day at midnight
                        start_date=start_date,
                        max_active_runs=1,
-                       concurrency=1)
+                       concurrency=3)
 
 
 SCRAPER = ECSOperator(task_id='news_scraper',
