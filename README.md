@@ -11,3 +11,8 @@ For detailed info: https://airflow.apache.org/docs/apache-airflow/stable/start/d
 
 Currently it is integrated with news-crawler and runs a docker container in AWS ECS.
 
+There are two dags in ```/dags``` folder:
+1. ```news_crawler_dag``` is scheduled to run daily starting from ```June 1st 2021```
+2. ```news_crawler_historical_dag``` processes historical data from 
+   ```Jan 1st 2014``` to ```May 31st 2021```.
+   
