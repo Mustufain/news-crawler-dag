@@ -11,8 +11,8 @@ def alert_slack_channel(context):
     :param context:
     :return:
     """
-    # url on slack incoming webhook
-    webhook = 'https://hooks.slack.com/services/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'
+    # url on slack incoming web hook
+    webhook = Variable.get("SLACK_WEBHOOK")
 
     last_task = context.get('task_instance')
     task_name = last_task.task_id
