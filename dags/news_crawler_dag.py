@@ -2,6 +2,39 @@ from datetime import date, datetime, timedelta
 from airflow import DAG
 from airflow.providers.amazon.aws.operators.ecs import ECSOperator
 from airflow.models import Variable
+from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator
+
+
+def alert_slack_channel(context):
+    """
+    Send alerts to slack channel on airflow failure
+    :param context:
+    :return:
+    """
+    # url on slack incoming webhook
+    webhook = 'https://hooks.slack.com/services/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'
+
+    last_task = context.get('task_instance')
+    task_name = last_task.task_id
+    log_link = f"<{last_task.log_url}|{task_name}>"
+    error_message = context.get('exception') or context.get('reason')
+
+    execution_date = context.get('execution_date')
+    title = f':red_circle: {task_name} has failed!'
+    msg_parts = {
+        'Execution date': execution_date,
+        'Log': log_link,
+        'Error': error_message
+    }
+    msg = "\\n".join([title,
+                      *[f"*{key}*: {value}" for key, value in msg_parts.items()]
+                      ]).strip()
+
+    SlackWebhookOperator(
+        task_id='notify_slack_channel',
+        http_conn_id=webhook,
+        message=msg,
+    ).execute(context=None)
 
 
 start_date = date(2021, 6, 1)  # 1 June 2021
@@ -10,7 +43,8 @@ start_datetime = datetime.combine(start_date,
 default_args = {
     'retries': 2,
     'retry_delay': timedelta(minutes=2),
-    'start_date': start_datetime
+    'start_date': start_datetime,
+    'on_failure_callback': alert_slack_channel
 }
 
 NEWS_CRAWLER_DAG = DAG(dag_id='news_crawler',
